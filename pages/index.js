@@ -1,169 +1,150 @@
-import { useState } from "react";
-import Tesseract from "tesseract.js";
-import Intro from "@/components/Intro";
-import UnitTable from "@/components/UnitTable";
+import { useState, useEffect } from "react";
+import Head from "next/head";
 
 export default function Home() {
-  const [showIntro, setShowIntro] = useState(true);
-  const [units, setUnits] = useState([]);
-  const [resultText, setResultText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [rows, setRows] = useState([]);
+  const [finalText, setFinalText] = useState("");
 
-  // معالجة رفع الصورة أو اللصق
-  const handleImage = (file) => {
-    if (!file) return;
-    setLoading(true);
-    setUploadProgress(0);
+  // الحقول الجديدة
+  const [opsName, setOpsName] = useState("");
+  const [opsCode, setOpsCode] = useState("");
+  const [depName, setDepName] = useState("");
+  const [depCode, setDepCode] = useState("");
+  const [chiefName, setChiefName] = useState("");
+  const [chiefCode, setChiefCode] = useState("");
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      Tesseract.recognize(reader.result, "ara+eng", {
-        logger: (m) => {
-          if (m.status === "recognizing text") {
-            setUploadProgress(Math.round(m.progress * 100));
-          }
-        },
-      })
-        .then(({ data: { text } }) => {
-          setResultText(text);
-          parseText(text);
-        })
-        .finally(() => setLoading(false));
-    };
-    reader.readAsDataURL(file);
-  };
+  // بناء النتيجة النهائية
+  function buildFinalText(rows) {
+    const inService = rows.filter((r) => r.status === "في الخدمة");
+    const off = rows.filter((r) => r.status === "خارج الخدمة");
+    const shared = rows.filter(
+      (r) => r.group === "shared" && r.partner && r.partner.name
+    );
+    const speed = rows.filter((r) => r.group === "speed");
+    const bike = rows.filter((r) => r.group === "bike");
 
-  // سحب النصوص وتحليلها إلى أسماء وأكواد
-  const parseText = (text) => {
-    const lines = text.split("\n").filter((l) => l.trim() !== "");
-    const parsedUnits = lines.map((line) => {
-      const parts = line.trim().split(" ");
-      const code = parts.pop();
-      const name = parts.join(" ");
-      return { name, code, status: "", location: "", partner: "" };
-    });
-    setUnits(parsedUnits);
-  };
+    const inFieldLines = inService.map((r) => `${r.name} ${r.code}`);
+    const sharedLines = shared.map(
+      (r) => `${r.name} ${r.code} + ${r.partner.name} ${r.partner.code}`
+    );
+    const speedLines = speed.map((r) => `${r.name} ${r.code}`);
+    const bikeLines = bike.map((r) => `${r.name} ${r.code}`);
+    const offLines = off.map((r) => `${r.name} ${r.code}`);
 
-  // لصق الصورة أو رفعها
-  const handlePaste = (e) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    for (const item of items) {
-      if (item.type.indexOf("image") === 0) {
-        const file = item.getAsFile();
-        handleImage(file);
-      }
-    }
-  };
+    return [
+      "📌 استلام العمليات 📌",
+      "",
+      opsName || opsCode ? `المستلم: ${opsName} ${opsCode}` : "",
+      depName || depCode ? `النائب: ${depName} ${depCode}` : "",
+      chiefName || chiefCode ? `مسؤول الفترة: ${chiefName} ${chiefCode}` : "",
+      "",
+      `عدد واسماء الوحدات في الميدان: (${inService.length})`,
+      ...inFieldLines,
+      "",
+      speedLines.length ? "وحدات سبيد يونت:" : "",
+      ...speedLines,
+      "",
+      bikeLines.length ? "وحدات دباب:" : "",
+      ...bikeLines,
+      "",
+      sharedLines.length ? "وحدات مشتركة:" : "",
+      ...sharedLines,
+      "",
+      `خارج الخدمة: (${off.length})`,
+      ...offLines,
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
 
-  // نسخ النتيجة النهائية
-  const handleCopy = () => {
-    const finalText = generateFinalReport();
-    navigator.clipboard.writeText(finalText);
-    alert("✅ تم النسخ بنجاح");
-  };
-
-  // توليد النموذج النهائي
-  const generateFinalReport = () => {
-    const inField = units.filter((u) => u.status !== "خارج الخدمة");
-    const offField = units.filter((u) => u.status === "خارج الخدمة");
-
-    const formatUnits = (arr) =>
-      arr
-        .map(
-          (u) =>
-            `${u.name} ${u.code}${
-              u.status ? ` (${u.status})` : ""
-            }${u.location ? ` - (${u.location})` : ""}${
-              u.partner ? ` + ${u.partner}` : ""
-            }`
-        )
-        .join("\n");
-
-    return `
-📌 استلام العمليات 📌
-
-عدد واسماء الوحدات في الميدان: (${inField.length})
-${formatUnits(inField)}
-
-وحدات مشتركة:
-${units
-  .filter((u) => u.partner)
-  .map(
-    (u) =>
-      `${u.name} ${u.code} + ${u.partner}${
-        u.location ? ` (${u.location})` : ""
-      }`
-  )
-  .join("\n")}
-
-خارج الخدمة: (${offField.length})
-${formatUnits(offField)}
-    `;
-  };
-
-  // معالجة اختيار الصورة
-  const handleFileInput = (e) => {
-    handleImage(e.target.files[0]);
-  };
+  useEffect(() => {
+    setFinalText(buildFinalText(rows));
+  }, [rows, opsName, opsCode, depName, depCode, chiefName, chiefCode]);
 
   return (
-    <div
-      className="min-h-screen p-4 md:p-8 bg-[url('/police-bg.jpg')] bg-cover bg-center text-white"
-      onPaste={handlePaste}
-    >
-      {showIntro && <Intro onFinish={() => setShowIntro(false)} />}
+    <>
+      <Head>
+        <title>تحديث مركز العمليات للشرطة</title>
+      </Head>
 
-      {!showIntro && (
-        <div className="max-w-5xl mx-auto space-y-4">
-          <header className="flex flex-col items-center justify-center text-center mb-6">
-            <img
-              src="/police-logo.png"
-              alt="شعار الشرطة"
-              className="w-24 h-24 mb-2 drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]"
-            />
-            <h1 className="text-3xl font-bold glow mb-2">
-              تحديث مركز العمليات للشرطة
-            </h1>
-            <p className="text-gray-300 text-sm">
-              يمكنك رفع أو لصق صورة لاستخراج الأسماء والأكواد مباشرة.
-            </p>
-          </header>
-
-          <div className="flex flex-col items-center justify-center gap-4">
-            <label className="bg-accentBlue px-5 py-3 rounded-lg shadow-glow cursor-pointer hover:bg-blue-500">
-              رفع صورة من الجهاز
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                hidden
-              />
-            </label>
-
-            {loading && (
-              <div className="text-center text-sm text-gray-300">
-                جارِ استخراج النص... {uploadProgress}%
-              </div>
-            )}
+      <main className="min-h-screen bg-[#0a0d15] text-white p-4 md:p-10">
+        <div className="max-w-6xl mx-auto">
+          {/* شعار */}
+          <div className="flex justify-center mb-4">
+            <img src="/3.png" alt="شعار الشرطة" className="w-32 h-auto" />
           </div>
 
-          <UnitTable units={units} setUnits={setUnits} />
-
-          {units.length > 0 && (
-            <div className="text-center mt-6">
+          {/* النتيجة النهائية */}
+          <div className="bg-white/5 border border-white/10 p-4 rounded-lg mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-bold">النتيجة النهائية</h2>
               <button
-                onClick={handleCopy}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg shadow-glow hover:bg-green-500"
+                onClick={() => navigator.clipboard.writeText(finalText)}
+                className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
               >
-                نسخ النتيجة النهائية
+                نسخ النتيجة
               </button>
             </div>
-          )}
+            <textarea
+              value={finalText}
+              readOnly
+              rows={10}
+              className="w-full bg-transparent text-white resize-none outline-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              المستلم يُحتسب ضمن العدد ولا يُعرض ضمن قائمة الميدان.
+            </p>
+          </div>
+
+          {/* الحقول الجديدة */}
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="space-y-2">
+              <label>العمليات — الاسم</label>
+              <input
+                value={opsName}
+                onChange={(e) => setOpsName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+              <label>الكود —</label>
+              <input
+                value={opsCode}
+                onChange={(e) => setOpsCode(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label>النائب — الاسم</label>
+              <input
+                value={depName}
+                onChange={(e) => setDepName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+              <label>الكود —</label>
+              <input
+                value={depCode}
+                onChange={(e) => setDepCode(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label>مسؤول الفترة — الاسم</label>
+              <input
+                value={chiefName}
+                onChange={(e) => setChiefName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+              <label>الكود —</label>
+              <input
+                value={chiefCode}
+                onChange={(e) => setChiefCode(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 p-2 rounded"
+              />
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+      </main>
+    </>
   );
 }

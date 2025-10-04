@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Tajawal', sans-serif;
   direction: rtl;
-  overflow-x: hidden;
-  background-color: #0a0f1a;
+  font-family: "Cairo", sans-serif;
+  background-image: url("/bg-police.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: white;
 }

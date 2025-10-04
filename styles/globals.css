@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: #0f172a; /* خلفية داكنة */
+  color: white;
+  font-family: 'Tajawal', sans-serif;
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  @apply bg-accentBlue text-white px-3 py-2 rounded-lg shadow-glow hover:bg-blue-500 transition;
+}
+
+input, select {
+  @apply bg-lightGray text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-accentBlue focus:outline-none w-full;
+}
+
+.table-container {
+  @apply bg-darkGray p-3 rounded-xl shadow-md border border-gray-700;
+}
+
+.glow {
+  text-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+
+.fade-in {
+  animation: fadeIn 1s ease-in-out;
+}
+
+.fade-out {
+  animation: fadeOut 2s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -1,41 +1,25 @@
-import { motion } from "framer-motion";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export default function Intro({ onFinish }) {
-  const [visible, setVisible] = useState(true);
+export default function Intro() {
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(false);
-      setTimeout(onFinish, 2000); // fade-out مدته 2 ثانية
-    }, 5000); // يظهر 5 ثواني
+    const timer = setTimeout(() => setShow(false), 4000); // يختفي بعد 4 ثواني
     return () => clearTimeout(timer);
-  }, [onFinish]);
+  }, []);
+
+  if (!show) return null;
 
   return (
-    visible && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 1 }}
-        className="fixed inset-0 flex flex-col items-center justify-center bg-black/90 z-50 fade-in fade-out"
-      >
-        <div className="text-center">
-          <Image
-            src="/police-logo.png"
-            alt="شعار الشرطة"
-            width={200}
-            height={200}
-            className="mx-auto mb-4 drop-shadow-[0_0_20px_rgba(59,130,246,0.8)]"
-            priority
-          />
-          <h1 className="text-2xl md:text-3xl font-bold glow">
-            تحديث مركز العمليات للشرطة
-          </h1>
-        </div>
-      </motion.div>
-    )
+    <div className="fixed inset-0 flex items-center justify-center bg-[#0a0f1a] z-50">
+      <div className="relative flex flex-col items-center">
+        <img
+          src="/3.png"
+          alt="شعار الشرطة"
+          className="w-40 h-40 object-contain drop-shadow-[0_0_30px_rgba(0,180,255,0.6)]"
+        />
+        <h1 className="text-white text-2xl mt-4 tracking-wider">تحديث مركز العمليات للشرطة</h1>
+      </div>
+    </div>
   );
 }

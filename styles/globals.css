@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 body {
-  font-family: "Tajawal", sans-serif;
-  background-color: #0a0d15;
-  color: #fff;
+  font-family: 'Tajawal', sans-serif;
+  direction: rtl;
+  overflow-x: hidden;
+  background-color: #0a0f1a;
 }

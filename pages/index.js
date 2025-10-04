@@ -1,106 +1,102 @@
 import { useState } from "react";
-import Intro from "@/components/Intro";
 
 export default function Home() {
-  const [formData, setFormData] = useState({
-    operationsName: "",
-    operationsCode: "",
-    deputyName: "",
-    deputyCode: "",
-    managerName: "",
-    managerCode: "",
-  });
+  const [receiver, setReceiver] = useState({ name: "", code: "" });
+  const [deputy, setDeputy] = useState({ name: "", code: "" });
+  const [manager, setManager] = useState({ name: "", code: "" });
+  const [result, setResult] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const updateResult = () => {
+    const text = `📌 استلام العمليات 📌
+
+المستلم: ${receiver.name || "—"} ${receiver.code || ""}
+النائب: ${deputy.name || "—"} ${deputy.code || ""}
+مسؤول الفترة: ${manager.name || "—"} ${manager.code || ""}`;
+
+    setResult(text);
   };
 
-  const copyResult = () => {
-    const text = generateResult();
-    navigator.clipboard.writeText(text);
-    alert("✅ تم نسخ النتيجة!");
-  };
-
-  const generateResult = () => {
-    return `📌 استلام العمليات 📌
-المستلم: ${formData.operationsName} ${formData.operationsCode}
-النائب: ${formData.deputyName} ${formData.deputyCode}
-مسؤول الفترة: ${formData.managerName} ${formData.managerCode}`;
+  const handleChange = (field, key, value) => {
+    if (field === "receiver") setReceiver({ ...receiver, [key]: value });
+    if (field === "deputy") setDeputy({ ...deputy, [key]: value });
+    if (field === "manager") setManager({ ...manager, [key]: value });
+    setTimeout(updateResult, 100);
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1a] text-white p-8 flex flex-col items-center">
-      <Intro />
+    <main className="min-h-screen bg-[#0e1116] text-white flex flex-col items-center justify-center p-4">
+      <h1 className="text-2xl mb-6">تحديث مركز عمليات الشرطة</h1>
 
-      <div className="w-full max-w-5xl mt-12">
-        <div className="bg-[#111827] p-6 rounded-2xl shadow-md border border-gray-700">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold">النتيجة النهائية</h2>
-            <button
-              onClick={copyResult}
-              className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1 rounded-md"
-            >
-              نسخ النتيجة
-            </button>
-          </div>
-
-          <textarea
-            readOnly
-            className="w-full h-40 p-3 bg-[#0d121d] border border-gray-700 rounded-md resize-none text-gray-200"
-            value={generateResult()}
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            المستلم يُحتسب ضمن العدد ولا يُعرض ضمن قائمة الميدان.
-          </p>
+      <div className="w-full max-w-5xl bg-[#141820] p-6 rounded-xl shadow-lg">
+        <div className="flex justify-between mb-3 items-center">
+          <h2 className="text-lg font-bold">النتيجة النهائية</h2>
+          <button
+            onClick={() => navigator.clipboard.writeText(result)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-sm"
+          >
+            نسخ النتيجة
+          </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mt-8">
-          <div>
-            <label className="block text-sm mb-1">المستلم — الاسم</label>
-            <input
-              name="operationsName"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-            <label className="block text-sm mt-2 mb-1">الكود</label>
-            <input
-              name="operationsCode"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-          </div>
+        <textarea
+          value={result}
+          readOnly
+          className="w-full h-40 bg-[#0f131a] text-white p-3 rounded-md resize-none outline-none text-right"
+        />
+        <p className="text-gray-400 text-sm mt-1">
+          المستلم يُحسب ضمن العدد ولا يُعرض ضمن قائمة الميدان.
+        </p>
+      </div>
 
-          <div>
-            <label className="block text-sm mb-1">النائب — الاسم</label>
-            <input
-              name="deputyName"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-            <label className="block text-sm mt-2 mb-1">الكود</label>
-            <input
-              name="deputyCode"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-          </div>
+      <div className="w-full max-w-5xl mt-6 bg-[#141820] p-6 rounded-xl shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6 text-right">
+        {/* المستلم */}
+        <div>
+          <label className="block mb-2 text-sm text-gray-300">المستلم — الاسم</label>
+          <input
+            value={receiver.name}
+            onChange={(e) => handleChange("receiver", "name", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
+          <label className="block mt-2 mb-2 text-sm text-gray-300">الكود</label>
+          <input
+            value={receiver.code}
+            onChange={(e) => handleChange("receiver", "code", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm mb-1">مسؤول الفترة — الاسم</label>
-            <input
-              name="managerName"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-            <label className="block text-sm mt-2 mb-1">الكود</label>
-            <input
-              name="managerCode"
-              onChange={handleChange}
-              className="w-full p-2 rounded-md bg-[#0d121d] border border-gray-700"
-            />
-          </div>
+        {/* النائب */}
+        <div>
+          <label className="block mb-2 text-sm text-gray-300">النائب — الاسم</label>
+          <input
+            value={deputy.name}
+            onChange={(e) => handleChange("deputy", "name", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
+          <label className="block mt-2 mb-2 text-sm text-gray-300">الكود</label>
+          <input
+            value={deputy.code}
+            onChange={(e) => handleChange("deputy", "code", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
+        </div>
+
+        {/* مسؤول الفترة */}
+        <div>
+          <label className="block mb-2 text-sm text-gray-300">مسؤول الفترة — الاسم</label>
+          <input
+            value={manager.name}
+            onChange={(e) => handleChange("manager", "name", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
+          <label className="block mt-2 mb-2 text-sm text-gray-300">الكود</label>
+          <input
+            value={manager.code}
+            onChange={(e) => handleChange("manager", "code", e.target.value)}
+            className="w-full p-2 bg-[#0f131a] rounded-md outline-none text-white"
+          />
         </div>
       </div>
-    </div>
+    </main>
   );
 }

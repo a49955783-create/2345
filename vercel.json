@@ -10,9 +10,7 @@
     "NEXT_TELEMETRY_DISABLED": "1"
   },
   "framework": "nextjs",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    { "src": "/(.*)", "dest": "/" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
   ]
 }
